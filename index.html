@@ -6,23 +6,18 @@
             name="viewport"
             content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
         />
-        <title>Gym Motion Puncher</title>
+        <title>Motion Kick the Punching Bag</title>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-        <link
-            href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap"
-            rel="stylesheet"
-        />
-
         <style>
+            @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap");
+
             body {
                 margin: 0;
                 overflow: hidden;
-                background-color: #2c3e50;
+                background-color: #2d3436;
                 font-family: "Poppins", sans-serif;
                 touch-action: none;
-                user-select: none;
             }
-
             #canvas-container {
                 position: absolute;
                 top: 0;
@@ -32,132 +27,54 @@
                 z-index: 1;
             }
 
-            /* Modern Gym UI */
+            /* Modern, clean UI overlay */
             #ui {
                 position: absolute;
-                top: 20px;
+                top: 40px;
                 left: 50%;
                 transform: translateX(-50%);
                 z-index: 10;
-                font-size: 20px;
-                font-weight: 900;
-                color: #fff;
-                background: rgba(0, 0, 0, 0.5);
-                padding: 10px 25px;
-                border-radius: 8px;
-                border: 2px solid #e74c3c;
-                box-shadow: 0px 4px 0px #c0392b;
+                font-size: 22px;
+                font-weight: 700;
+                color: white;
+                background: rgba(255, 255, 255, 0.15);
+                backdrop-filter: blur(8px);
+                padding: 8px 24px;
+                border-radius: 30px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
                 pointer-events: none;
                 display: flex;
                 align-items: center;
-                gap: 10px;
+                gap: 8px;
             }
 
             #instructions {
                 position: absolute;
-                bottom: 20px;
+                bottom: 40px;
                 left: 50%;
                 transform: translateX(-50%);
-                background: rgba(0, 0, 0, 0.6);
-                color: #fff;
-                padding: 10px 20px;
-                border-radius: 8px;
+                background: rgba(0, 0, 0, 0.4);
+                padding: 10px 24px;
+                border-radius: 20px;
+                color: #f1f2f6;
+                font-weight: 400;
                 font-size: 14px;
-                font-weight: 700;
                 z-index: 10;
                 pointer-events: none;
                 white-space: nowrap;
-                text-align: center;
+                letter-spacing: 0.5px;
             }
 
-            /* --- STORE UI --- */
-            #store-btn {
-                position: absolute;
-                bottom: 20px;
-                right: 20px;
-                z-index: 10;
-                background: #f39c12;
-                color: #fff;
-                border: none;
-                padding: 15px 20px;
-                font-family: "Poppins", sans-serif;
-                font-size: 16px;
-                font-weight: 900;
-                border-radius: 8px;
-                cursor: pointer;
-                box-shadow: 0px 4px 0px #e67e22;
-                transition: 0.1s ease;
-            }
-            #store-btn:active {
-                transform: translateY(4px);
-                box-shadow: 0px 0px 0px #e67e22;
-            }
-
-            #store-panel {
-                position: absolute;
-                top: 0;
-                right: -350px;
-                width: 300px;
-                height: 100vh;
-                background: rgba(44, 62, 80, 0.95);
-                z-index: 20;
-                transition: right 0.3s ease;
-                padding: 20px;
-                box-sizing: border-box;
-                display: flex;
-                flex-direction: column;
-                border-left: 4px solid #f39c12;
-                color: white;
-            }
-            #store-panel.open {
-                right: 0;
-            }
-
-            .close-btn {
-                background: #e74c3c;
-                color: white;
-                border: none;
-                padding: 10px;
-                font-family: "Poppins", sans-serif;
-                font-size: 14px;
-                font-weight: bold;
-                border-radius: 5px;
-                cursor: pointer;
-                margin-bottom: 20px;
-            }
-            .store-item {
-                background: #34495e;
-                padding: 15px;
-                margin-bottom: 15px;
-                border-radius: 8px;
-                cursor: pointer;
-                border: 2px solid transparent;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                font-weight: bold;
-                transition: 0.2s;
-            }
-            .store-item:hover {
-                background: #3b536b;
-            }
-            .store-item.locked {
-                opacity: 0.6;
-            }
-            .store-item.equipped {
-                border-color: #2ecc71;
-                background: #27ae60;
-                opacity: 1;
-            }
-
-            /* Start Screen */
+            /* Cleaner Start Screen */
             #start-screen {
                 position: absolute;
                 top: 0;
                 left: 0;
                 width: 100vw;
                 height: 100vh;
-                background: rgba(44, 62, 80, 0.95);
+                background: rgba(15, 15, 20, 0.85);
+                backdrop-filter: blur(10px);
                 z-index: 50;
                 display: flex;
                 flex-direction: column;
@@ -168,167 +85,83 @@
             }
             #start-screen h1 {
                 margin: 0 0 10px 0;
-                font-size: 32px;
+                font-size: 28px;
                 font-weight: 900;
-                color: #e74c3c;
-                text-shadow: 2px 2px 0px #000;
+                letter-spacing: 1px;
+                color: #ff7675;
             }
             #start-screen p {
-                margin: 0 0 30px 0;
+                margin: 0 0 40px 0;
                 max-width: 80%;
                 font-size: 14px;
-                color: #bdc3c7;
+                line-height: 1.6;
+                color: #dfe6e9;
+                font-weight: 400;
             }
 
             #start-btn {
-                background: #e74c3c;
+                background: linear-gradient(135deg, #ff7675, #d63031);
                 border: none;
-                padding: 15px 40px;
-                border-radius: 8px;
+                padding: 16px 40px;
+                border-radius: 30px;
                 font-family: "Poppins", sans-serif;
-                font-size: 20px;
-                font-weight: 900;
+                font-size: 18px;
+                font-weight: 700;
                 color: white;
                 cursor: pointer;
-                box-shadow: 0px 6px 0px #c0392b;
-                transition: 0.1s ease;
+                box-shadow: 0 8px 20px rgba(214, 48, 49, 0.4);
+                transition: transform 0.1s ease;
             }
             #start-btn:active {
-                transform: translateY(6px);
-                box-shadow: 0px 0px 0px #c0392b;
+                transform: scale(0.92);
             }
 
             .hit-text {
                 position: absolute;
-                color: #f1c40f;
+                color: #ffeaa7;
                 font-weight: 900;
-                font-size: 35px;
+                font-size: 30px;
                 pointer-events: none;
-                text-shadow: 3px 3px 0px #000;
+                text-shadow: 0px 3px 10px rgba(214, 48, 49, 0.8);
                 z-index: 5;
-                animation: floatUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)
+                animation: floatUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)
                     forwards;
             }
             @keyframes floatUp {
                 0% {
                     opacity: 1;
-                    transform: translateY(0) scale(0.5) rotate(-10deg);
+                    transform: translateY(0) scale(0.5);
                 }
                 100% {
                     opacity: 0;
-                    transform: translateY(-100px) scale(1.5) rotate(10deg);
+                    transform: translateY(-100px) scale(1.2);
                 }
             }
         </style>
     </head>
     <body>
         <div id="start-screen">
-            <h1>🥊 GYM PUNCHER</h1>
-            <p>THRUST DEVICE FORWARD = JAB<br />SWING LEFT/RIGHT = HOOKS</p>
-            <button id="start-btn" onclick="initGame()">ENTER GYM</button>
+            <h1>🥊MOTION PUNCHER</h1>
+            <p>
+                Thrust your phone forward for a straight jab.<br />Swing left or
+                right for hooks!
+            </p>
+            <button id="start-btn" onclick="initGame()">START</button>
         </div>
 
-        <div id="ui">SCORE: <span id="coin-count">0</span></div>
-        <div id="instructions">TAP SCREEN OR SWING PHONE</div>
-
-        <button id="store-btn" onclick="toggleStore()">🛒 SHOP</button>
-
-        <div id="store-panel">
-            <button class="close-btn" onclick="toggleStore()">
-                ❌ CLOSE SHOP
-            </button>
-            <h2 style="margin-top: 0; color: #f39c12; font-weight: 900">
-                PRO SHOP
-            </h2>
-
-            <div
-                class="store-item equipped"
-                id="item-basic"
-                onclick="buyOrEquip('basic')"
-            >
-                <span>🥊 Red Gloves</span> <span>Owned</span>
-            </div>
-            <div
-                class="store-item locked"
-                id="item-power"
-                onclick="buyOrEquip('power')"
-            >
-                <span>🥊 Blue Power</span> <span>💰 200</span>
-            </div>
-            <div
-                class="store-item locked"
-                id="item-gold"
-                onclick="buyOrEquip('gold')"
-            >
-                <span>🥊 Golden Fists</span> <span>💰 1000</span>
-            </div>
-        </div>
+        <div id="ui"><span>🪙</span> <span id="coin-count">0</span></div>
+        <div id="instructions">Tap screen or swing phone</div>
 
         <div id="canvas-container"></div>
 
         <script>
-            // --- STORE LOGIC & GAME STATE ---
             let coins = 0;
             const uiCoins = document.getElementById("coin-count");
-
-            const store = {
-                basic: { cost: 0, unlocked: true, damage: 10, color: 0xe74c3c }, // Red
-                power: {
-                    cost: 200,
-                    unlocked: false,
-                    damage: 25,
-                    color: 0x3498db,
-                }, // Blue
-                gold: {
-                    cost: 1000,
-                    unlocked: false,
-                    damage: 100,
-                    color: 0xf1c40f,
-                }, // Gold
-            };
-            let currentGlove = "basic";
-
-            function toggleStore() {
-                document.getElementById("store-panel").classList.toggle("open");
-            }
-
-            function buyOrEquip(id) {
-                let item = store[id];
-
-                // Buying Logic
-                if (!item.unlocked) {
-                    if (coins >= item.cost) {
-                        coins -= item.cost;
-                        uiCoins.innerText = coins;
-                        item.unlocked = true;
-                        document
-                            .getElementById(`item-${id}`)
-                            .classList.remove("locked");
-                        document.getElementById(
-                            `item-${id}`,
-                        ).children[1].innerText = "Owned";
-                    } else {
-                        alert("Not enough coins to buy this!");
-                        return; // Stop here if they can't afford it
-                    }
-                }
-
-                // Equipping Logic
-                currentGlove = id;
-                document
-                    .querySelectorAll(".store-item")
-                    .forEach((el) => el.classList.remove("equipped"));
-                document.getElementById(`item-${id}`).classList.add("equipped");
-
-                // Update 3D Model Color
-                gloveMat.color.setHex(item.color);
-            }
 
             // --- THREE.JS SETUP ---
             const container = document.getElementById("canvas-container");
             const scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x2c3e50);
-            scene.fog = new THREE.Fog(0x2c3e50, 30, 80);
+            scene.background = new THREE.Color(0x74b9ff);
 
             const camera = new THREE.PerspectiveCamera(
                 65,
@@ -341,130 +174,83 @@
             const renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             container.appendChild(renderer.domElement);
 
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
             scene.add(ambientLight);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(10, 20, 10);
+            dirLight.castShadow = true;
+            scene.add(dirLight);
 
-            const spotLight = new THREE.SpotLight(0xffffff, 1);
-            spotLight.position.set(0, 30, 20);
-            spotLight.angle = Math.PI / 4;
-            spotLight.penumbra = 0.5;
-            spotLight.castShadow = true;
-            scene.add(spotLight);
-
-            // --- GYM ENVIRONMENT ---
-            const floorGeo = new THREE.PlaneGeometry(120, 120);
-            const floorMat = new THREE.MeshToonMaterial({ color: 0xd35400 });
-            const floor = new THREE.Mesh(floorGeo, floorMat);
-            floor.rotation.x = -Math.PI / 2;
-            floor.position.y = -15;
-            floor.receiveShadow = true;
-            scene.add(floor);
-
-            const wallGeo = new THREE.PlaneGeometry(120, 60);
-            const wallMat = new THREE.MeshToonMaterial({ color: 0x7f8c8d });
-            const wall = new THREE.Mesh(wallGeo, wallMat);
-            wall.position.set(0, 10, -20);
-            wall.receiveShadow = true;
-            scene.add(wall);
-
-            const mirrorGeo = new THREE.PlaneGeometry(40, 20);
-            const mirrorMat = new THREE.MeshStandardMaterial({
-                color: 0xbdc3c7,
-                roughness: 0.2,
-                metalness: 0.8,
-            });
-            const mirror = new THREE.Mesh(mirrorGeo, mirrorMat);
-            mirror.position.set(0, 0, -19.5);
-            scene.add(mirror);
-
-            // --- THE PUNCHING BAG (NO OUTLINES) ---
+            // --- THE PUNCHING BAG ---
             const pivot = new THREE.Group();
             pivot.position.set(0, 15, 0);
             scene.add(pivot);
 
-            const ropeMat = new THREE.MeshToonMaterial({ color: 0x34495e });
-            const ropeGeo = new THREE.CylinderGeometry(0.3, 0.3, 10, 8);
-            const rope = new THREE.Mesh(ropeGeo, ropeMat);
+            const ropeMat = new THREE.MeshStandardMaterial({ color: 0x2d3436 });
+            const rope = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.15, 0.15, 10, 8),
+                ropeMat,
+            );
             rope.position.y = -5;
-            rope.castShadow = true;
             pivot.add(rope);
 
             const bagGroup = new THREE.Group();
             bagGroup.position.y = -13;
             pivot.add(bagGroup);
 
-            const bagMat = new THREE.MeshToonMaterial({ color: 0x2980b9 });
-
-            const bodyGeo = new THREE.CylinderGeometry(3, 3, 7, 16);
-            const bodyMesh = new THREE.Mesh(bodyGeo, bagMat);
-            bodyMesh.castShadow = true;
-
-            const topHemiGeo = new THREE.SphereGeometry(
-                3,
-                16,
-                8,
-                0,
-                Math.PI * 2,
-                0,
-                Math.PI / 2,
+            const bagMat = new THREE.MeshStandardMaterial({
+                color: 0xff7675,
+                roughness: 0.4,
+            });
+            const bodyMesh = new THREE.Mesh(
+                new THREE.CylinderGeometry(2.5, 2.5, 6, 32),
+                bagMat,
             );
-            const topHemi = new THREE.Mesh(topHemiGeo, bagMat);
-            topHemi.position.y = 3.5;
-
-            const botHemiGeo = new THREE.SphereGeometry(
-                3,
-                16,
-                8,
-                0,
-                Math.PI * 2,
-                Math.PI / 2,
-                Math.PI / 2,
+            const topHemi = new THREE.Mesh(
+                new THREE.SphereGeometry(
+                    2.5,
+                    32,
+                    16,
+                    0,
+                    Math.PI * 2,
+                    0,
+                    Math.PI / 2,
+                ),
+                bagMat,
             );
-            const botHemi = new THREE.Mesh(botHemiGeo, bagMat);
-            botHemi.position.y = -3.5;
-
+            topHemi.position.y = 3;
+            const botHemi = new THREE.Mesh(
+                new THREE.SphereGeometry(
+                    2.5,
+                    32,
+                    16,
+                    0,
+                    Math.PI * 2,
+                    Math.PI / 2,
+                    Math.PI / 2,
+                ),
+                bagMat,
+            );
+            botHemi.position.y = -3;
             bagGroup.add(bodyMesh, topHemi, botHemi);
 
-            // --- 3D REALISTIC BOXING GLOVES (NO OUTLINES) ---
-            // Create a shared material so updating the store updates both gloves instantly
-            const gloveMat = new THREE.MeshToonMaterial({
-                color: store.basic.color,
+            // --- 3D BOXING GLOVES ---
+            const gloveGeo = new THREE.SphereGeometry(1.6, 32, 32);
+            const gloveMat = new THREE.MeshStandardMaterial({
+                color: 0xd63031,
+                roughness: 0.2,
             });
 
-            function createGlove(isLeft) {
-                const gloveGroup = new THREE.Group();
+            const leftGlove = new THREE.Mesh(gloveGeo, gloveMat);
+            const rightGlove = new THREE.Mesh(gloveGeo, gloveMat);
 
-                // 1. Main Padding (Fist)
-                const fistGeo = new THREE.SphereGeometry(1.8, 16, 16);
-                const fist = new THREE.Mesh(fistGeo, gloveMat);
-                fist.scale.set(1, 1.2, 1.3);
-                gloveGroup.add(fist);
-
-                // 2. Wrist Cuff
-                const cuffGeo = new THREE.CylinderGeometry(1.3, 1.5, 2, 16);
-                const cuff = new THREE.Mesh(cuffGeo, gloveMat);
-                cuff.position.set(0, -2, 0);
-                gloveGroup.add(cuff);
-
-                // 3. Thumb
-                const thumbGeo = new THREE.SphereGeometry(0.8, 16, 16);
-                const thumb = new THREE.Mesh(thumbGeo, gloveMat);
-                thumb.scale.set(1, 1.4, 1);
-                thumb.position.set(isLeft ? 1.4 : -1.4, -0.2, 0.8);
-                thumb.rotation.z = isLeft ? -0.4 : 0.4;
-                gloveGroup.add(thumb);
-
-                return gloveGroup;
-            }
-
-            const leftGlove = createGlove(true);
-            const rightGlove = createGlove(false);
-
-            const leftRest = new THREE.Vector3(-3.5, -4.5, -12);
-            const rightRest = new THREE.Vector3(3.5, -4.5, -12);
+            // TUCKED GLOVES INWARD FOR MOBILE SCREENS
+            // X moved from 4.5 to 2.2 so they stay completely on screen
+            // Y moved from -5.5 to -4.5 so they aren't completely cropped at the bottom
+            const leftRest = new THREE.Vector3(-2.2, -4.5, -12);
+            const rightRest = new THREE.Vector3(2.2, -4.5, -12);
 
             leftGlove.position.copy(leftRest);
             rightGlove.position.copy(rightRest);
@@ -489,26 +275,24 @@
             const PUNCH_COOLDOWN = 350;
 
             // --- START GAME & SENSORS ---
-            async function initGame() {
-                try {
-                    if (document.documentElement.requestFullscreen)
-                        await document.documentElement.requestFullscreen();
-                    if (screen.orientation && screen.orientation.lock)
-                        await screen.orientation.lock("landscape");
-                } catch (err) {
-                    console.log("Orientation lock not supported.");
-                }
-
-                document.getElementById("start-screen").style.display = "none";
+            function initGame() {
+                document.getElementById("start-screen").style.opacity = "0";
+                setTimeout(
+                    () =>
+                        (document.getElementById("start-screen").style.display =
+                            "none"),
+                    300,
+                );
 
                 if (typeof DeviceMotionEvent.requestPermission === "function") {
                     DeviceMotionEvent.requestPermission()
                         .then((permissionState) => {
-                            if (permissionState === "granted")
+                            if (permissionState === "granted") {
                                 window.addEventListener(
                                     "devicemotion",
                                     handleMotion,
                                 );
+                            }
                         })
                         .catch(console.error);
                 } else {
@@ -520,6 +304,7 @@
             function handleMotion(event) {
                 let accX = event.acceleration.x;
                 let accZ = event.acceleration.z;
+
                 if (accX === null) return;
 
                 let now = Date.now();
@@ -541,8 +326,6 @@
             }
 
             // --- VISUAL PUNCH LOGIC ---
-            const punchSounds = ["SMASH!", "BAM!", "CRACK!", "BOOM!"];
-
             function triggerPunchAnim(type) {
                 isPunching = true;
                 punchProgress = 0;
@@ -551,19 +334,16 @@
                     activeGlove = rightGlove;
                     punchTarget.set(0, 0, -22);
                     velZ -= 0.6;
-                    activeGlove.rotation.z = -Math.PI / 2;
                 } else if (type === "left") {
                     activeGlove = leftGlove;
                     punchTarget.set(2, 2, -20);
                     velX += 0.4;
                     velZ -= 0.3;
-                    activeGlove.rotation.z = Math.PI / 4;
                 } else if (type === "right") {
                     activeGlove = rightGlove;
                     punchTarget.set(-2, 2, -20);
                     velX -= 0.4;
                     velZ -= 0.3;
-                    activeGlove.rotation.z = -Math.PI / 4;
                 }
 
                 setTimeout(() => {
@@ -572,46 +352,28 @@
             }
 
             function spawnHitEffect(type) {
-                // Apply damage based on equipped glove!
-                coins += store[currentGlove].damage;
+                coins += 10;
                 uiCoins.innerText = coins;
-
                 scaleTarget = 0.7;
-                bagMat.color.setHex(0xffffff); // White flash
-                setTimeout(() => bagMat.color.setHex(0x2980b9), 80);
+                bagMat.color.setHex(0xffffff);
+                setTimeout(() => bagMat.color.setHex(0xff7675), 80);
 
                 const text = document.createElement("div");
                 text.className = "hit-text";
-                text.innerText =
-                    punchSounds[Math.floor(Math.random() * punchSounds.length)];
-                text.style.left = `${window.innerWidth / 2 + (Math.random() * 100 - 50)}px`;
+                text.innerText = "BAM!";
+                text.style.left = `${window.innerWidth / 2 + (Math.random() * 80 - 40)}px`;
                 text.style.top = `${window.innerHeight / 2 - 120 + (Math.random() * 40 - 20)}px`;
                 document.body.appendChild(text);
-                setTimeout(() => text.remove(), 600);
+                setTimeout(() => text.remove(), 800);
             }
 
-            // Don't trigger punches if clicking inside the store panel or buttons
             window.addEventListener("mousedown", (e) => {
-                if (
-                    !e.target.closest("#store-panel") &&
-                    e.target.id !== "store-btn" &&
-                    !isPunching
-                )
+                if (!isPunching) triggerPunchAnim("straight");
+            });
+            window.addEventListener("touchstart", (e) => {
+                if (e.target.id !== "start-btn" && !isPunching)
                     triggerPunchAnim("straight");
             });
-            window.addEventListener(
-                "touchstart",
-                (e) => {
-                    if (
-                        !e.target.closest("#store-panel") &&
-                        e.target.id !== "start-btn" &&
-                        e.target.id !== "store-btn" &&
-                        !isPunching
-                    )
-                        triggerPunchAnim("straight");
-                },
-                { passive: false },
-            );
 
             // --- ANIMATION LOOP ---
             function animate() {
@@ -638,7 +400,6 @@
                         );
                     } else {
                         activeGlove.position.copy(restPos);
-                        activeGlove.rotation.set(0, 0, 0);
                         isPunching = false;
                         activeGlove = null;
                     }
