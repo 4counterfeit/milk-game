@@ -141,7 +141,7 @@
     </head>
     <body>
         <div id="start-screen">
-            <h1>･MOTION PUNCHER</h1>
+            <h1>🥊MOTION PUNCHER</h1>
             <p>
                 Thrust your phone forward for a straight jab.<br />Swing left or
                 right for hooks!
@@ -149,7 +149,7 @@
             <button id="start-btn" onclick="initGame()">START</button>
         </div>
 
-        <div id="ui"><span>腸</span> <span id="coin-count">0</span></div>
+        <div id="ui"><span>🪙</span> <span id="coin-count">0</span></div>
         <div id="instructions">Tap screen or swing phone</div>
 
         <div id="canvas-container"></div>
@@ -163,7 +163,6 @@
             const scene = new THREE.Scene();
             scene.background = new THREE.Color(0x74b9ff);
 
-            // Pulled camera back from Z=30 to Z=35 to make the bag appear smaller
             const camera = new THREE.PerspectiveCamera(
                 65,
                 window.innerWidth / window.innerHeight,
@@ -201,7 +200,6 @@
             bagGroup.position.y = -13;
             pivot.add(bagGroup);
 
-            // Slightly thinned out the bag
             const bagMat = new THREE.MeshStandardMaterial({
                 color: 0xff7675,
                 roughness: 0.4,
@@ -239,7 +237,6 @@
             bagGroup.add(bodyMesh, topHemi, botHemi);
 
             // --- 3D BOXING GLOVES ---
-            // Shrunk gloves from radius 2.5 down to 1.6 so they don't eat the screen
             const gloveGeo = new THREE.SphereGeometry(1.6, 32, 32);
             const gloveMat = new THREE.MeshStandardMaterial({
                 color: 0xd63031,
@@ -249,9 +246,11 @@
             const leftGlove = new THREE.Mesh(gloveGeo, gloveMat);
             const rightGlove = new THREE.Mesh(gloveGeo, gloveMat);
 
-            // Moved resting positions wider and lower
-            const leftRest = new THREE.Vector3(-4.5, -5.5, -12);
-            const rightRest = new THREE.Vector3(4.5, -5.5, -12);
+            // TUCKED GLOVES INWARD FOR MOBILE SCREENS
+            // X moved from 4.5 to 2.2 so they stay completely on screen
+            // Y moved from -5.5 to -4.5 so they aren't completely cropped at the bottom
+            const leftRest = new THREE.Vector3(-2.2, -4.5, -12);
+            const rightRest = new THREE.Vector3(2.2, -4.5, -12);
 
             leftGlove.position.copy(leftRest);
             rightGlove.position.copy(rightRest);
