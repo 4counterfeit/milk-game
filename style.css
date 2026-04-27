@@ -1,0 +1,198 @@
+body {
+    margin: 0;
+    overflow: hidden;
+    background-color: #2c3e50;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    color: white;
+    user-select: none;
+    touch-action: none;
+}
+
+#canvas-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1;
+}
+
+#ui {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    z-index: 10;
+    pointer-events: none;
+}
+
+.danger-box {
+    margin-top: 15px;
+    font-size: 20px;
+}
+#danger-bar-bg {
+    width: 200px;
+    height: 20px;
+    background: #333;
+    border: 2px solid #fff;
+    border-radius: 10px;
+    margin-top: 5px;
+    overflow: hidden;
+}
+#danger-bar-fill {
+    width: 0%;
+    height: 100%;
+    background: #e74c3c;
+    transition: width 0.1s;
+}
+
+#shop-btn {
+    margin-top: 15px;
+    padding: 10px 15px;
+    font-size: 16px;
+    font-weight: bold;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+/* LIVE SHOP OVERLAY */
+#shop-screen {
+    position: absolute;
+    top: 5%;
+    left: 5%;
+    width: 90%;
+    height: 90%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px); /* Lets you see the bag! */
+    border: 3px solid #f39c12;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    z-index: 15;
+    padding-top: 20px;
+    box-sizing: border-box;
+}
+
+#shop-title {
+    margin: 0;
+    font-size: 40px;
+    color: #f1c40f;
+}
+#shop-screen p {
+    margin-top: 5px;
+    margin-bottom: 20px;
+    font-weight: bold;
+    color: #e74c3c;
+}
+
+.shop-item {
+    width: 80%;
+    background: #34495e;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    border: 2px solid #2c3e50;
+    text-align: center;
+    cursor: pointer;
+}
+.shop-item:active {
+    transform: scale(0.95);
+    background: #2c3e50;
+}
+.shop-item h3 {
+    margin: 0 0 5px 0;
+    color: white;
+}
+.shop-item p {
+    margin: 0;
+    color: #bdc3c7;
+    font-size: 14px;
+    font-weight: normal;
+}
+
+.close-btn {
+    margin-top: auto;
+    margin-bottom: 30px;
+    padding: 15px 30px;
+    font-size: 20px;
+    background: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+/* Overlay Screens */
+.overlay-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
+    text-align: center;
+}
+.overlay-screen h1 {
+    font-size: 50px;
+    margin-bottom: 10px;
+}
+.overlay-screen p {
+    font-size: 20px;
+    color: #bdc3c7;
+    margin-bottom: 30px;
+    line-height: 1.5;
+    padding: 0 20px;
+}
+.overlay-screen button {
+    padding: 20px 40px;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    background: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 10px;
+}
+#restart-btn {
+    background: #e74c3c;
+}
+
+/* Hit Text */
+.hit-text {
+    position: absolute;
+    font-size: 40px;
+    font-weight: bold;
+    color: #f1c40f;
+    text-transform: uppercase;
+    text-shadow: 3px 3px 0px #000;
+    z-index: 25;
+    pointer-events: none;
+    animation: floatUpFade 0.6s ease-out forwards;
+}
+
+@keyframes floatUpFade {
+    0% {
+        transform: scale(0.5);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1) translateY(-60px);
+        opacity: 0;
+    }
+}
