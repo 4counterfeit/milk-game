@@ -1,59 +1,49 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1.0, user-scalable=no"
-        />
-        <title>Boxing Clicker - Survival</title>
-        <link rel="stylesheet" href="style.css" />
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    </head>
-    <body>
-        <div id="canvas-container"></div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Boxing Clicker - Survival</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <div id="canvas-container"></div>
 
-        <div id="ui">
-            <div>💰 Coins: <span id="uiCoins">0</span></div>
-            <div class="danger-box">
-                ⚠️ Distance:
-                <div id="danger-bar-bg">
-                    <div id="danger-bar-fill"></div>
-                </div>
+    <div id="ui">
+        <div>💰 Coins: <span id="uiCoins">0</span></div>
+        <div class="danger-box">
+            ⚠️ Distance:
+            <div id="danger-bar-bg">
+                <div id="danger-bar-fill"></div>
             </div>
-            <button id="shop-btn" onclick="openShop()">🛒 Shop</button>
         </div>
+        <button id="shop-btn" onclick="openShop()">🛒 Shop</button>
+    </div>
 
-        <div id="shop-screen" style="display: none">
-            <h1 id="shop-title">GLOVE SHOP</h1>
-            <p>Hurry! The bag is still moving!</p>
+    <div id="shop-screen" style="display: none;">
+        <h1 id="shop-title">GLOVE SHOP</h1>
+        <p>Hurry! The bag is still moving!</p>
+        
+        <div id="shop-items-container"></div>
 
-            <div id="shop-items-container"></div>
+        <button class="close-btn" onclick="closeShop()">Back to Punching!</button>
+    </div>
 
-            <button class="close-btn" onclick="closeShop()">
-                Back to Punching!
-            </button>
-        </div>
+    <div id="start-screen" class="overlay-screen">
+        <h1>Boxing Clicker</h1>
+        <p>The bag is sliding towards you.<br>
+           <strong style="color: #f1c40f;">Thrust forward to punch. Shake vertically to open the shop!</strong></p>
+        <button id="start-btn" onclick="initGame()">Start Punching</button>
+    </div>
 
-        <div id="start-screen" class="overlay-screen">
-            <h1>Boxing Clicker</h1>
-            <p>
-                The bag is sliding towards you.<br />
-                <strong style="color: #f1c40f"
-                    >Thrust forward to punch. Shake vertically to open the
-                    shop!</strong
-                >
-            </p>
-            <button id="start-btn" onclick="initGame()">Start Punching</button>
-        </div>
+    <div id="game-over-screen" class="overlay-screen" style="display: none;">
+        <h1 style="color: #e74c3c;">CRUSHED!</h1>
+        <p>The bag overpowered you!</p>
+        <h2>Final Score: <span id="final-score">0</span></h2>
+        <button id="restart-btn" onclick="restartGame()">Try Again</button>
+    </div>
 
-        <div id="game-over-screen" class="overlay-screen" style="display: none">
-            <h1 style="color: #e74c3c">CRUSHED!</h1>
-            <p>The bag overpowered you!</p>
-            <h2>Final Score: <span id="final-score">0</span></h2>
-            <button id="restart-btn" onclick="restartGame()">Try Again</button>
-        </div>
-
-        <script src="script.js"></script>
-    </body>
+    <script src="script.js"></script>
+</body>
 </html>
