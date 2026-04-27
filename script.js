@@ -8,24 +8,24 @@ let currentTierIndex = 0;
 let knockbackPower = 1.5; // Base knockback
 let coinsPerPunch = 1;    // Base coins earned per punch
 
-// The 10 Ranks (Costs and rewards scale exponentially)
+// The 10 Ranks (Costs lowered for early game, still high for late game)
 const gloveTiers = [
-    { name: "Bronze Brawlers", cost: 20, power: 2.5, coins: 2, color: 0xcd7f32 },
-    { name: "Iron Fists", cost: 100, power: 4.5, coins: 4, color: 0x7f8c8d },
-    { name: "Steel Smashers", cost: 400, power: 8.0, coins: 8, color: 0xbdc3c7 },
-    { name: "Golden Gladiators", cost: 1500, power: 14.0, coins: 16, color: 0xf1c40f },
-    { name: "Platinum Punishers", cost: 5000, power: 24.0, coins: 32, color: 0xe5e4e2 },
-    { name: "Emerald Enforcers", cost: 18000, power: 40.0, coins: 64, color: 0x2ecc71 },
-    { name: "Sapphire Strikers", cost: 60000, power: 70.0, coins: 128, color: 0x3498db },
-    { name: "Amethyst Annihilators", cost: 200000, power: 120.0, coins: 256, color: 0x9b59b6 },
-    { name: "Obsidian Obliterators", cost: 750000, power: 200.0, coins: 512, color: 0x111111 },
-    { name: "Radiant God Fists", cost: 2500000, power: 400.0, coins: 1500, color: 0x00ffff }
+    { name: "Bronze Brawlers", cost: 10, power: 2.5, coins: 2, color: 0xcd7f32 },
+    { name: "Iron Fists", cost: 40, power: 4.5, coins: 4, color: 0x7f8c8d },
+    { name: "Steel Smashers", cost: 150, power: 8.0, coins: 8, color: 0xbdc3c7 },
+    { name: "Golden Gladiators", cost: 600, power: 14.0, coins: 16, color: 0xf1c40f },
+    { name: "Platinum Punishers", cost: 2500, power: 24.0, coins: 32, color: 0xe5e4e2 },
+    { name: "Emerald Enforcers", cost: 10000, power: 40.0, coins: 64, color: 0x2ecc71 },
+    { name: "Sapphire Strikers", cost: 40000, power: 70.0, coins: 128, color: 0x3498db },
+    { name: "Amethyst Annihilators", cost: 150000, power: 120.0, coins: 256, color: 0x9b59b6 },
+    { name: "Obsidian Obliterators", cost: 600000, power: 200.0, coins: 512, color: 0x111111 },
+    { name: "Radiant God Fists", cost: 2000000, power: 400.0, coins: 1500, color: 0x00ffff }
 ];
 
 // Tug-of-war mechanics
 let bagZ = 0; 
-let bagSpeed = 0.03; 
-let bagAcceleration = 0.00005; // Exponential difficulty scaling
+let bagSpeed = 0.01; // Starts much slower
+let bagAcceleration = 0.00001; // Slower initial acceleration
 const MAX_Z = 25; 
 
 // Motion Control State
@@ -50,15 +50,12 @@ const shopBtn = document.getElementById("shop-btn");
 const startScreenText = document.querySelector("#start-screen p");
 
 // --- DEVICE DETECTION & UI SETUP ---
-// Check if the user is on a mobile device or has a touch screen
 const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 
 if (isMobileDevice) {
-    // Mobile UI: Hide button, show physical motion instructions
     shopBtn.style.display = "none";
     startScreenText.innerHTML = `The bag is sliding towards you.<br><strong style="color: #f1c40f;">Thrust forward to punch. Shake vertically to open the shop!</strong>`;
 } else {
-    // Desktop UI: Show button, show mouse click instructions
     shopBtn.style.display = "inline-block";
     startScreenText.innerHTML = `The bag is sliding towards you.<br><strong style="color: #f1c40f;">Click to punch. Click the Shop button to upgrade!</strong>`;
 }
@@ -152,7 +149,6 @@ camera.add(leftGlove);
 camera.add(rightGlove);
 scene.add(camera);
 
-// Global materials to update colors
 const leftGloveMat = new THREE.MeshToonMaterial({ color: 0xe74c3c });
 const rightGloveMat = new THREE.MeshToonMaterial({ color: 0xe74c3c });
 
@@ -226,12 +222,10 @@ function buyUpgrade(index) {
         coins -= tier.cost;
         uiCoins.innerText = coins;
         
-        // Apply Upgrades
         knockbackPower = tier.power;
         coinsPerPunch = tier.coins;
         currentTierIndex++;
         
-        // Visual Upgrade
         leftGloveMat.color.setHex(tier.color);
         rightGloveMat.color.setHex(tier.color);
         
@@ -259,20 +253,22 @@ function handleMotion(event) {
     let now = Date.now();
     let isRecoil = (now - lastPunchTime < 250);
 
-    if (now - lastShakeTime > 500) {
+    // Increased timeout to give you more time to complete the shake
+    if (now - lastShakeTime > 800) {
         shakeCount = 0;
         lastShakeDir = 0;
     }
 
-    // VERTICAL SHAKE DETECTION
-    if (!isRecoil && Math.abs(accY) > 5 && Math.abs(accY) > Math.abs(accZ) * 1.5) {
+    // VERTICAL SHAKE DETECTION: Lowered thresholds for much easier triggering
+    if (!isRecoil && Math.abs(accY) > 3 && Math.abs(accY) > Math.abs(accZ) * 1.2) {
         let currentDir = Math.sign(accY); 
         if (currentDir !== lastShakeDir) {
             shakeCount++;
             lastShakeDir = currentDir;
             lastShakeTime = now;
 
-            if (shakeCount >= 3) {
+            // Only takes 2 directional changes now (e.g., Up then Down)
+            if (shakeCount >= 2) {
                 if (now - lastMotionTime > MOTION_COOLDOWN && !isShopOpen) {
                     openShop();
                     lastMotionTime = now;
@@ -303,10 +299,10 @@ async function initGame() {
     isGameOver = false;
     document.getElementById("start-screen").style.display = "none";
     
-    // Reset Game Mechanics
+    // Reset Game Mechanics (Slower Start)
     bagZ = 0;
-    bagSpeed = 0.03;
-    bagAcceleration = 0.00005; 
+    bagSpeed = 0.01; 
+    bagAcceleration = 0.00001; 
     
     // Reset Player Stats
     coins = 0;
@@ -418,7 +414,8 @@ function animate() {
         bagZ += bagSpeed;
         pivot.position.z = bagZ;
         
-        bagAcceleration += 0.0000003; 
+        // Gentle exponential ramp-up. Starts forgiving, gets brutal later.
+        bagAcceleration += 0.00000005; 
         bagSpeed += bagAcceleration; 
 
         updateDangerBar();
