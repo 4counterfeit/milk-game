@@ -28,18 +28,7 @@
             <h1 id="shop-title">GLOVE SHOP</h1>
             <p>Hurry! The bag is still moving!</p>
 
-            <div class="shop-item" onclick="buyUpgrade(20, 2.5, 0x8e44ad)">
-                <h3>Purple Brawlers</h3>
-                <p>Cost: 20 Coins | Knockback: +</p>
-            </div>
-            <div class="shop-item" onclick="buyUpgrade(50, 4.0, 0xf1c40f)">
-                <h3>Golden Fists</h3>
-                <p>Cost: 50 Coins | Knockback: ++</p>
-            </div>
-            <div class="shop-item" onclick="buyUpgrade(100, 7.0, 0x00cec9)">
-                <h3>Diamond Smashers</h3>
-                <p>Cost: 100 Coins | Knockback: +++</p>
-            </div>
+            <div id="shop-items-container"></div>
 
             <button class="close-btn" onclick="closeShop()">
                 Back to Punching!
@@ -51,7 +40,7 @@
             <p>
                 The bag is sliding towards you.<br />
                 <strong style="color: #f1c40f"
-                    >Thrust forward to punch. Jerk the phone UP to open the
+                    >Thrust forward to punch. Shake vertically to open the
                     shop!</strong
                 >
             </p>
@@ -60,7 +49,7 @@
 
         <div id="game-over-screen" class="overlay-screen" style="display: none">
             <h1 style="color: #e74c3c">CRUSHED!</h1>
-            <p>You weren't fast enough!</p>
+            <p>The bag overpowered you!</p>
             <h2>Final Score: <span id="final-score">0</span></h2>
             <button id="restart-btn" onclick="restartGame()">Try Again</button>
         </div>
