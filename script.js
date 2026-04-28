@@ -1,63 +1,37 @@
 // --- GAME STATE VARIABLES ---
-let coins = 0;
+let score = 0;
 let isGameOver = true;
-let isShopOpen = false;
 
-// Upgradable Stats (Absolute powerhouse starting stats)
-let currentTierIndex = 0;
-let knockbackPower = 10.0; // One punch sends it flying back
-let coinsPerPunch = 5;     // Print money immediately
+// Skill-Based Mechanics
+let bagState = "neutral"; // states: neutral, warning, attack, stunned
+let stateTimer = 0;
+let difficultyMultiplier = 1.0;
 
-// The 10 Ranks (Renamed to include Silver, massively buffed coin yields)
-const gloveTiers = [
-    { name: "Bronze Brawlers", cost: 20, power: 15.0, coins: 15, color: 0xcd7f32 },
-    { name: "Iron Fists", cost: 75, power: 25.0, coins: 40, color: 0x7f8c8d },
-    { name: "Silver Smashers", cost: 200, power: 40.0, coins: 100, color: 0xc0c0c0 },
-    { name: "Golden Gladiators", cost: 600, power: 60.0, coins: 250, color: 0xf1c40f },
-    { name: "Platinum Punishers", cost: 2000, power: 90.0, coins: 600, color: 0xe5e4e2 },
-    { name: "Emerald Enforcers", cost: 6000, power: 140.0, coins: 1500, color: 0x2ecc71 },
-    { name: "Sapphire Strikers", cost: 20000, power: 200.0, coins: 4000, color: 0x3498db },
-    { name: "Amethyst Annihilators", cost: 75000, power: 350.0, coins: 10000, color: 0x9b59b6 },
-    { name: "Obsidian Obliterators", cost: 250000, power: 600.0, coins: 25000, color: 0x111111 },
-    { name: "Radiant God Fists", cost: 1000000, power: 1000.0, coins: 100000, color: 0x00ffff }
-];
-
-// Tug-of-war mechanics (Bag is practically crawling)
+// Tug-of-war mechanics
 let bagZ = 0; 
-let bagSpeed = 0.002; 
-let bagAcceleration = 0.0000005; // It will take ages for it to get fast
 const MAX_Z = 25; 
 
 // Motion Control State
 let nextPunchIsLeft = true;
 let lastPunchTime = 0;
-let lastMotionTime = 0;
-const PUNCH_COOLDOWN = 250; 
-const MOTION_COOLDOWN = 500; 
-
-// Vertical Shake State
-let shakeCount = 0;
-let lastShakeTime = 0;
-let lastShakeDir = 0;
+const PUNCH_COOLDOWN = 200; // Slightly faster cooldown for combos
 
 // DOM Elements
-const uiCoins = document.getElementById("uiCoins");
+const uiCoins = document.getElementById("uiCoins"); // Repurposed for Score
 const dangerFill = document.getElementById("danger-bar-fill");
-const shopScreen = document.getElementById("shop-screen");
-const shopTitle = document.getElementById("shop-title");
-const shopContainer = document.getElementById("shop-items-container");
-const shopBtn = document.getElementById("shop-btn");
+const shopBtn = document.getElementById("shop-btn"); // We will hide this permanently
 const startScreenText = document.querySelector("#start-screen p");
 
-// --- DEVICE DETECTION & UI SETUP ---
+// --- UI SETUP ---
+// Hide the shop button entirely since the shop is gone
+if (shopBtn) shopBtn.style.display = "none";
+
 const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 
 if (isMobileDevice) {
-    shopBtn.style.display = "none";
-    startScreenText.innerHTML = `The bag is sliding towards you.<br><strong style="color: #f1c40f;">Thrust forward to punch. Shake vertically to open the shop!</strong>`;
+    startScreenText.innerHTML = `The bag will charge at you.<br><strong style="color: #f1c40f;">Thrust forward to punch.<br>Wait for RED to Counter! Do NOT punch on Yellow!</strong>`;
 } else {
-    shopBtn.style.display = "inline-block";
-    startScreenText.innerHTML = `The bag is sliding towards you.<br><strong style="color: #f1c40f;">Click to punch. Click the Shop button to upgrade!</strong>`;
+    startScreenText.innerHTML = `The bag will charge at you.<br><strong style="color: #f1c40f;">Click to punch.<br>Wait for RED to Counter! Do NOT punch on Yellow!</strong>`;
 }
 
 // --- THREE.JS SETUP ---
@@ -173,110 +147,17 @@ rightGlove.add(createGloveMesh(rightGloveMat, false));
 let velX = 0, velZ = 0, spring = 0.05, friction = 0.92, scaleTarget = 1;
 let activeGlove = null, punchProgress = 0, punchTarget = new THREE.Vector3(), targetPunchRot = new THREE.Vector3(), isPunching = false;
 
-// --- SHOP LOGIC ---
-function renderShop() {
-    shopContainer.innerHTML = ""; 
-    
-    gloveTiers.forEach((tier, index) => {
-        let isBought = index < currentTierIndex;
-        let isNext = index === currentTierIndex;
-        
-        let btnClass = "shop-item";
-        if (isBought) btnClass += " bought";
-        if (!isBought && !isNext) btnClass += " locked";
-        
-        let div = document.createElement('div');
-        div.className = btnClass;
-        
-        let statusText = isBought ? "EQUIPPED" : (isNext ? `Cost: ${tier.cost}` : "LOCKED");
-        
-        div.innerHTML = `
-            <h3 style="color: ${isBought || isNext ? '#' + tier.color.toString(16).padStart(6, '0') : '#fff'};">${tier.name}</h3>
-            <p>${statusText} | Power: ${tier.power} | Coins/Punch: ${tier.coins}</p>
-        `;
-        
-        if (isNext) {
-            div.onclick = () => buyUpgrade(index);
-        }
-        
-        shopContainer.appendChild(div);
-    });
-}
-
-function openShop() {
-    if (isGameOver) return;
-    isShopOpen = true;
-    renderShop(); 
-    shopScreen.style.display = "flex";
-}
-
-function closeShop() {
-    isShopOpen = false;
-    shopScreen.style.display = "none";
-}
-
-function buyUpgrade(index) {
-    const tier = gloveTiers[index];
-    
-    if (coins >= tier.cost) {
-        coins -= tier.cost;
-        uiCoins.innerText = coins;
-        
-        knockbackPower = tier.power;
-        coinsPerPunch = tier.coins;
-        currentTierIndex++;
-        
-        leftGloveMat.color.setHex(tier.color);
-        rightGloveMat.color.setHex(tier.color);
-        
-        spawnText("RANK UP!", "#2ecc71", window.innerWidth / 2, window.innerHeight / 2);
-        renderShop(); 
-    } else {
-        shopTitle.innerText = "NOT ENOUGH COINS!";
-        shopTitle.style.color = "#e74c3c";
-        setTimeout(() => {
-            shopTitle.innerText = "GLOVE SHOP";
-            shopTitle.style.color = "#f1c40f";
-        }, 800);
-    }
-}
-
 // --- MOTION CONTROL LOGIC ---
 function handleMotion(event) {
     if (isGameOver) return;
     
     let accZ = event.acceleration.z; 
-    let accY = event.acceleration.y; 
-    
-    if (accZ === null || accY === null) return; 
+    if (accZ === null) return; 
     
     let now = Date.now();
-    let isRecoil = (now - lastPunchTime < 250);
 
-    if (now - lastShakeTime > 800) {
-        shakeCount = 0;
-        lastShakeDir = 0;
-    }
-
-    if (!isRecoil && Math.abs(accY) > 3 && Math.abs(accY) > Math.abs(accZ) * 1.2) {
-        let currentDir = Math.sign(accY); 
-        if (currentDir !== lastShakeDir) {
-            shakeCount++;
-            lastShakeDir = currentDir;
-            lastShakeTime = now;
-
-            if (shakeCount >= 2) {
-                if (now - lastMotionTime > MOTION_COOLDOWN && !isShopOpen) {
-                    openShop();
-                    lastMotionTime = now;
-                    shakeCount = 0; 
-                }
-            }
-        }
-        return; 
-    }
-
-    if (Math.abs(accZ) > 8 && !isShopOpen) {
+    // PUNCH DETECTION
+    if (Math.abs(accZ) > 8) {
         if (now - lastPunchTime < PUNCH_COOLDOWN) return;
         
         let side = nextPunchIsLeft ? "left" : "right";
@@ -284,9 +165,6 @@ function handleMotion(event) {
         
         triggerPunchAnim(side, window.innerWidth / 2, window.innerHeight / 2);
         lastPunchTime = now;
-        
-        shakeCount = 0;
-        lastShakeDir = 0;
     }
 }
 
@@ -295,22 +173,14 @@ async function initGame() {
     isGameOver = false;
     document.getElementById("start-screen").style.display = "none";
     
-    // Reset Game Mechanics (Snail pace)
     bagZ = 0;
-    bagSpeed = 0.002; 
-    bagAcceleration = 0.0000005; 
+    score = 0;
+    difficultyMultiplier = 1.0;
+    bagState = "neutral";
+    stateTimer = Date.now() + 2000; // First attack happens in 2 seconds
     
-    // Reset Player Stats (Overpowered)
-    coins = 0;
-    currentTierIndex = 0;
-    knockbackPower = 10.0;
-    coinsPerPunch = 5;
-    leftGloveMat.color.setHex(0xe74c3c); 
-    rightGloveMat.color.setHex(0xe74c3c);
-    
-    uiCoins.innerText = coins;
+    uiCoins.innerText = "SCORE: 0";
     updateDangerBar();
-    closeShop();
 
     if (isMobileDevice && typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
         try {
@@ -329,9 +199,13 @@ async function initGame() {
 function triggerGameOver() {
     isGameOver = true;
     window.removeEventListener('devicemotion', handleMotion);
-    document.getElementById("final-score").innerText = coins;
+    
+    // Repurpose final score text
+    const finalScoreEl = document.getElementById("final-score");
+    if(finalScoreEl) {
+        finalScoreEl.innerText = score + " Counters";
+    }
     document.getElementById("game-over-screen").style.display = "flex";
-    closeShop();
 }
 
 function restartGame() {
@@ -353,7 +227,7 @@ function updateDangerBar() {
 
 // --- PUNCHING LOGIC ---
 function triggerPunchAnim(side, clientX, clientY) {
-    if (isPunching || isShopOpen) return; 
+    if (isPunching) return; 
 
     isPunching = true;
     punchProgress = 0;
@@ -371,24 +245,46 @@ function triggerPunchAnim(side, clientX, clientY) {
         velX -= 0.4; velZ -= 0.3;
     }
 
-    setTimeout(() => spawnHitEffect(clientX, clientY), 120);
+    // Delay checking the hit until glove actually makes contact
+    setTimeout(() => checkHit(clientX, clientY), 120);
 }
 
-function spawnHitEffect(clientX, clientY) {
+function checkHit(clientX, clientY) {
     if (isGameOver) return;
 
-    coins += coinsPerPunch; 
-    uiCoins.innerText = coins;
-    
-    bagZ -= knockbackPower; 
-    if (bagZ < 0) bagZ = 0; 
+    scaleTarget = 0.7; // Squish bag
 
-    scaleTarget = 0.7;
-    bagMat.color.setHex(0xffffff);
-    setTimeout(() => bagMat.color.setHex(0x2980b9), 80);
-    
-    const sounds = ["SMASH!", "BAM!", "POW!", "WHACK!"];
-    spawnText(sounds[Math.floor(Math.random() * sounds.length)], "#f1c40f", clientX, clientY);
+    // SKILL CHECK LOGIC
+    if (bagState === "attack") {
+        // PERFECT COUNTER
+        score++;
+        uiCoins.innerText = "SCORE: " + score;
+        bagZ -= 12; // Massive pushback
+        
+        bagState = "stunned";
+        stateTimer = Date.now() + 600; // Stunned duration
+        bagMat.color.setHex(0xffffff); // White
+        
+        spawnText("PERFECT COUNTER!", "#2ecc71", clientX, clientY);
+        difficultyMultiplier += 0.15; // Game gets progressively faster
+
+    } else if (bagState === "warning") {
+        // TOO EARLY / PUNISHMENT
+        bagZ += 4; // Bag surges forward
+        spawnText("TOO EARLY!", "#e74c3c", clientX, clientY);
+        
+    } else if (bagState === "neutral") {
+        // Standard jab, small pushback
+        bagZ -= 0.8;
+        spawnText("JAB", "#bdc3c7", clientX, clientY);
+        
+    } else if (bagState === "stunned") {
+        // Extra hits while stunned
+        bagZ -= 1.5;
+        spawnText("COMBO", "#3498db", clientX, clientY);
+    }
+
+    if (bagZ < 0) bagZ = 0;
 }
 
 function spawnText(msg, color, clientX, clientY) {
@@ -402,17 +298,56 @@ function spawnText(msg, color, clientX, clientY) {
     setTimeout(() => text.remove(), 600);
 }
 
-// --- ANIMATION LOOP ---
+// --- BAG AI & ANIMATION LOOP ---
+function manageBagAI() {
+    let now = Date.now();
+
+    if (bagState === "neutral") {
+        bagZ += 0.02 * difficultyMultiplier; // Slow creep
+        bagMat.color.setHex(0x2980b9); // Blue
+        
+        if (now > stateTimer) {
+            // Enter Warning phase
+            bagState = "warning";
+            bagMat.color.setHex(0xf1c40f); // Yellow
+            // Warning window gets shorter as you score more
+            let warningDuration = Math.max(150, 600 - (score * 20)); 
+            stateTimer = now + warningDuration;
+        }
+
+    } else if (bagState === "warning") {
+        if (now > stateTimer) {
+            // Enter Attack phase
+            bagState = "attack";
+            bagMat.color.setHex(0xe74c3c); // Red
+            // Attack window gets shorter as you score more
+            let attackDuration = Math.max(150, 500 - (score * 15));
+            stateTimer = now + attackDuration;
+        }
+
+    } else if (bagState === "attack") {
+        bagZ += 0.4 * difficultyMultiplier; // Fast lunge forward
+        if (now > stateTimer) {
+            // Missed the counter window, reset to neutral
+            bagState = "neutral";
+            stateTimer = now + 1000 + (Math.random() * 2000); // Random delay before next attack
+        }
+
+    } else if (bagState === "stunned") {
+        if (now > stateTimer) {
+            // Wake up from stun
+            bagState = "neutral";
+            stateTimer = now + 800 + (Math.random() * 1500);
+        }
+    }
+}
+
 function animate() {
     requestAnimationFrame(animate);
     
     if (!isGameOver) {
-        bagZ += bagSpeed;
+        manageBagAI();
         pivot.position.z = bagZ;
-        
-        bagAcceleration += 0.0000000005; // Practically non-existent acceleration
-        bagSpeed += bagAcceleration; 
-
         updateDangerBar();
 
         if (bagZ >= MAX_Z) {
@@ -421,7 +356,7 @@ function animate() {
     }
 
     if (isPunching && activeGlove) {
-        punchProgress += 0.08;
+        punchProgress += 0.12; // Faster punch animation for better responsiveness
         let restPos = activeGlove === leftGlove ? leftRest : rightRest;
         if (punchProgress <= 1.0) {
             let t = punchProgress < 0.4 ? Math.sin((punchProgress / 0.4) * (Math.PI / 2)) : 1 - Math.pow((punchProgress - 0.4) / 0.6, 2);
@@ -443,7 +378,7 @@ function animate() {
     velZ *= friction;
     pivot.rotation.x += velX;
     pivot.rotation.z += velZ;
-    scaleTarget += (1 - scaleTarget) * 0.1;
+    scaleTarget += (1 - scaleTarget) * 0.15;
     
     bagGroup.scale.y = scaleTarget;
     bagGroup.scale.x = 1 + (1 - scaleTarget) * 0.5;
@@ -454,7 +389,7 @@ function animate() {
 animate();
 
 window.addEventListener("pointerdown", (e) => {
-    if (!isGameOver && !isShopOpen && !e.target.closest("#shop-screen") && e.target.tagName !== "BUTTON") {
+    if (!isGameOver && e.target.tagName !== "BUTTON") {
         triggerPunchAnim(e.clientX < window.innerWidth / 2 ? "left" : "right", e.clientX, e.clientY);
     }
 });
