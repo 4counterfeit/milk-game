@@ -1,3 +1,29 @@
+// --- CARTOONY UI INJECTION ---
+document.body.style.fontFamily = "'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', sans-serif";
+const style = document.createElement('style');
+style.innerHTML = `
+    .hit-text {
+        position: fixed;
+        font-weight: 900 !important;
+        font-size: 3.5rem !important;
+        text-transform: uppercase;
+        text-shadow: 3px 3px 0px #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000 !important; /* Thick black outline */
+        pointer-events: none;
+        z-index: 1000;
+        transition: top 0.6s ease-out, opacity 0.6s;
+    }
+    #danger-bar {
+        border: 4px solid #000 !important; /* Thick cartoony border */
+        border-radius: 10px !important;
+        box-shadow: 4px 4px 0px #000 !important;
+    }
+    #uiCoins, #start-screen p, #game-over-screen h1 {
+        text-shadow: 2px 2px 0px #000 !important;
+        letter-spacing: 2px;
+    }
+`;
+document.head.appendChild(style);
+
 // --- GAME STATE VARIABLES ---
 let score = 0;
 let isGameOver = true;
@@ -6,6 +32,7 @@ let isGameOver = true;
 let bagState = "neutral"; // states: neutral, warning, attack, stunned
 let stateTimer = 0;
 let difficultyMultiplier = 1.0;
+let isStumbled = false; // Anti-spam penalty state
 
 // Tug-of-war mechanics
 let bagZ = 0; 
@@ -14,16 +41,15 @@ const MAX_Z = 25;
 // Motion Control State
 let nextPunchIsLeft = true;
 let lastPunchTime = 0;
-const PUNCH_COOLDOWN = 200; // Slightly faster cooldown for combos
+const PUNCH_COOLDOWN = 200; 
 
 // DOM Elements
-const uiCoins = document.getElementById("uiCoins"); // Repurposed for Score
+const uiCoins = document.getElementById("uiCoins"); 
 const dangerFill = document.getElementById("danger-bar-fill");
-const shopBtn = document.getElementById("shop-btn"); // We will hide this permanently
+const shopBtn = document.getElementById("shop-btn"); 
 const startScreenText = document.querySelector("#start-screen p");
 
 // --- UI SETUP ---
-// Hide the shop button entirely since the shop is gone
 if (shopBtn) shopBtn.style.display = "none";
 
 const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
@@ -34,11 +60,11 @@ if (isMobileDevice) {
     startScreenText.innerHTML = `The bag will charge at you.<br><strong style="color: #f1c40f;">Click to punch.<br>Wait for RED to Counter! Do NOT punch on Yellow!</strong>`;
 }
 
-// --- THREE.JS SETUP ---
+// --- THREE.JS SETUP (Cartoony Colors) ---
 const container = document.getElementById("canvas-container");
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x2c3e50);
-scene.fog = new THREE.Fog(0x2c3e50, 30, 80);
+scene.background = new THREE.Color(0x87CEEB); // Bright Sky Blue
+scene.fog = new THREE.Fog(0x87CEEB, 30, 80);
 
 const camera = new THREE.PerspectiveCamera(85, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, -2, 38); 
@@ -49,19 +75,19 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 container.appendChild(renderer.domElement);
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // Brighter ambient
 scene.add(ambientLight);
 
-const spotLight = new THREE.SpotLight(0xffffff, 1);
-spotLight.position.set(0, 30, 20);
+const spotLight = new THREE.SpotLight(0xffffff, 1.5);
+spotLight.position.set(0, 40, 20);
 spotLight.angle = Math.PI / 4;
-spotLight.penumbra = 0.5;
+spotLight.penumbra = 0.2; // Sharper shadows for toon look
 spotLight.castShadow = true;
 scene.add(spotLight);
 
 // --- GYM ENVIRONMENT ---
 const floorGeo = new THREE.PlaneGeometry(120, 120);
-const floorMat = new THREE.MeshToonMaterial({ color: 0xd35400 });
+const floorMat = new THREE.MeshToonMaterial({ color: 0x2ecc71 }); // Bright Green Floor
 const floor = new THREE.Mesh(floorGeo, floorMat);
 floor.rotation.x = -Math.PI / 2;
 floor.position.y = -15;
@@ -69,14 +95,14 @@ floor.receiveShadow = true;
 scene.add(floor);
 
 const wallGeo = new THREE.PlaneGeometry(120, 60);
-const wallMat = new THREE.MeshToonMaterial({ color: 0x7f8c8d });
+const wallMat = new THREE.MeshToonMaterial({ color: 0xf39c12 }); // Vibrant Orange Wall
 const wall = new THREE.Mesh(wallGeo, wallMat);
 wall.position.set(0, 10, -30);
 wall.receiveShadow = true;
 scene.add(wall);
 
 const trackGeo = new THREE.BoxGeometry(2, 0.5, 60);
-const trackMat = new THREE.MeshToonMaterial({ color: 0x555555 });
+const trackMat = new THREE.MeshToonMaterial({ color: 0x2c3e50 });
 const track = new THREE.Mesh(trackGeo, trackMat);
 track.position.set(0, 12.5, 10);
 scene.add(track);
@@ -96,7 +122,7 @@ const bagGroup = new THREE.Group();
 bagGroup.position.y = -13;
 pivot.add(bagGroup);
 
-const bagMat = new THREE.MeshToonMaterial({ color: 0x2980b9 });
+const bagMat = new THREE.MeshToonMaterial({ color: 0x3498db }); // Bright Blue Bag
 const bodyGeo = new THREE.CylinderGeometry(3, 3, 7, 16);
 const bodyMesh = new THREE.Mesh(bodyGeo, bagMat);
 bodyMesh.castShadow = true;
@@ -177,7 +203,8 @@ async function initGame() {
     score = 0;
     difficultyMultiplier = 1.0;
     bagState = "neutral";
-    stateTimer = Date.now() + 2000; // First attack happens in 2 seconds
+    isStumbled = false;
+    stateTimer = Date.now() + 2000; 
     
     uiCoins.innerText = "SCORE: 0";
     updateDangerBar();
@@ -200,7 +227,6 @@ function triggerGameOver() {
     isGameOver = true;
     window.removeEventListener('devicemotion', handleMotion);
     
-    // Repurpose final score text
     const finalScoreEl = document.getElementById("final-score");
     if(finalScoreEl) {
         finalScoreEl.innerText = score + " Counters";
@@ -222,12 +248,12 @@ function updateDangerBar() {
     
     if (percentage > 80) dangerFill.style.background = "#c0392b"; 
     else if (percentage > 50) dangerFill.style.background = "#f39c12"; 
-    else dangerFill.style.background = "#27ae60"; 
+    else dangerFill.style.background = "#2ecc71"; // Brighter green
 }
 
 // --- PUNCHING LOGIC ---
 function triggerPunchAnim(side, clientX, clientY) {
-    if (isPunching) return; 
+    if (isPunching || isStumbled) return; // Prevent punching if stumbled!
 
     isPunching = true;
     punchProgress = 0;
@@ -245,7 +271,6 @@ function triggerPunchAnim(side, clientX, clientY) {
         velX -= 0.4; velZ -= 0.3;
     }
 
-    // Delay checking the hit until glove actually makes contact
     setTimeout(() => checkHit(clientX, clientY), 120);
 }
 
@@ -262,26 +287,31 @@ function checkHit(clientX, clientY) {
         bagZ -= 12; // Massive pushback
         
         bagState = "stunned";
-        stateTimer = Date.now() + 600; // Stunned duration
-        bagMat.color.setHex(0xffffff); // White
+        stateTimer = Date.now() + 600; 
+        bagMat.color.setHex(0xffffff); // Flash white
         
-        spawnText("PERFECT COUNTER!", "#2ecc71", clientX, clientY);
-        difficultyMultiplier += 0.15; // Game gets progressively faster
+        spawnText("SMASH!", "#2ecc71", clientX, clientY);
+        difficultyMultiplier += 0.15; 
 
     } else if (bagState === "warning") {
-        // TOO EARLY / PUNISHMENT
-        bagZ += 4; // Bag surges forward
-        spawnText("TOO EARLY!", "#e74c3c", clientX, clientY);
+        // SPAM PENALTY! Punish them heavily for hitting Yellow.
+        bagZ += 8; // Massive penalty surge
+        isStumbled = true; // Lock out punching
         
+        spawnText("STUMBLE!", "#e74c3c", clientX, clientY);
+        
+        // Remove stumble state after 1 second
+        setTimeout(() => {
+            isStumbled = false;
+        }, 1000);
+
     } else if (bagState === "neutral") {
-        // Standard jab, small pushback
-        bagZ -= 0.8;
-        spawnText("JAB", "#bdc3c7", clientX, clientY);
+        bagZ -= 0.4;
+        spawnText("BOP", "#bdc3c7", clientX, clientY);
         
     } else if (bagState === "stunned") {
-        // Extra hits while stunned
         bagZ -= 1.5;
-        spawnText("COMBO", "#3498db", clientX, clientY);
+        spawnText("COMBO!", "#f1c40f", clientX, clientY);
     }
 
     if (bagZ < 0) bagZ = 0;
@@ -292,9 +322,21 @@ function spawnText(msg, color, clientX, clientY) {
     text.className = "hit-text";
     text.innerText = msg;
     text.style.color = color;
+    
+    // Cartoony tilt and positioning
+    const randomTilt = Math.random() * 30 - 15; 
+    text.style.transform = `rotate(${randomTilt}deg)`;
     text.style.left = `${clientX + (Math.random() * 100 - 50)}px`;
     text.style.top = `${clientY - 120 + (Math.random() * 40 - 20)}px`;
+    
     document.body.appendChild(text);
+    
+    // Animate up and fade out
+    setTimeout(() => {
+        text.style.top = `${parseInt(text.style.top) - 50}px`;
+        text.style.opacity = "0";
+    }, 50);
+
     setTimeout(() => text.remove(), 600);
 }
 
@@ -303,39 +345,35 @@ function manageBagAI() {
     let now = Date.now();
 
     if (bagState === "neutral") {
-        bagZ += 0.02 * difficultyMultiplier; // Slow creep
-        bagMat.color.setHex(0x2980b9); // Blue
+        bagZ += 0.02 * difficultyMultiplier; 
+        bagMat.color.setHex(0x3498db); // Blue
         
         if (now > stateTimer) {
-            // Enter Warning phase
             bagState = "warning";
             bagMat.color.setHex(0xf1c40f); // Yellow
-            // Warning window gets shorter as you score more
-            let warningDuration = Math.max(150, 600 - (score * 20)); 
+            // More forgiving warning window
+            let warningDuration = Math.max(300, 700 - (score * 15)); 
             stateTimer = now + warningDuration;
         }
 
     } else if (bagState === "warning") {
         if (now > stateTimer) {
-            // Enter Attack phase
             bagState = "attack";
             bagMat.color.setHex(0xe74c3c); // Red
-            // Attack window gets shorter as you score more
-            let attackDuration = Math.max(150, 500 - (score * 15));
+            // Much more forgiving attack window (Starts at 0.6s, min 0.25s)
+            let attackDuration = Math.max(250, 600 - (score * 10));
             stateTimer = now + attackDuration;
         }
 
     } else if (bagState === "attack") {
-        bagZ += 0.4 * difficultyMultiplier; // Fast lunge forward
+        bagZ += 0.4 * difficultyMultiplier; // Fast lunge
         if (now > stateTimer) {
-            // Missed the counter window, reset to neutral
             bagState = "neutral";
-            stateTimer = now + 1000 + (Math.random() * 2000); // Random delay before next attack
+            stateTimer = now + 1000 + (Math.random() * 2000); 
         }
 
     } else if (bagState === "stunned") {
         if (now > stateTimer) {
-            // Wake up from stun
             bagState = "neutral";
             stateTimer = now + 800 + (Math.random() * 1500);
         }
@@ -356,7 +394,7 @@ function animate() {
     }
 
     if (isPunching && activeGlove) {
-        punchProgress += 0.12; // Faster punch animation for better responsiveness
+        punchProgress += 0.12; 
         let restPos = activeGlove === leftGlove ? leftRest : rightRest;
         if (punchProgress <= 1.0) {
             let t = punchProgress < 0.4 ? Math.sin((punchProgress / 0.4) * (Math.PI / 2)) : 1 - Math.pow((punchProgress - 0.4) / 0.6, 2);
