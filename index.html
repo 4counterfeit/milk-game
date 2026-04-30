@@ -44,7 +44,15 @@
             <h2 id="final-score">SCORE: 0</h2>
             <button class="epic-btn" onclick="location.reload()">RETRY</button>
         </div>
-
+        <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(() => console.log('Service Worker Registered!'))
+        .catch((err) => console.log('Service Worker Failed:', err));
+    });
+  }
+</script>
         <script src="script.js"></script>
     </body>
 </html>
