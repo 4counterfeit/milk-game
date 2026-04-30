@@ -105,6 +105,13 @@ style.innerHTML = `
         border: 5px solid black; cursor: pointer; box-shadow: 8px 8px 0px black;
     }
 
+    /* Install Button Style */
+    .install-btn {
+        margin-top: 20px; background: #2ecc71; color: white;
+        font-family: 'Bangers', cursive; font-size: 2.5rem; padding: 5px 40px;
+        border: 5px solid black; cursor: pointer; box-shadow: 8px 8px 0px black;
+    }
+
     .hit-text {
         position: fixed; font-size: 5rem !important; color: #FFCC00;
         -webkit-text-stroke: 3px black; text-shadow: 6px 6px 0px #000;
@@ -140,9 +147,14 @@ document.body.appendChild(modalDiv);
 const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || "ontouchstart" in window || navigator.maxTouchPoints > 0;
 const controlText = isMobileDevice ? "THRUST TO STRIKE!" : "CLICK TO STRIKE!";
 
+let deferredPrompt;
 const startScreenEl = document.getElementById("start-screen");
-if (startScreenEl) {
-    startScreenEl.innerHTML = `
+
+// --- START SCREEN RENDERER ---
+function renderStartScreen() {
+    if (!startScreenEl) return;
+    
+    let html = `
         <h1 class="epic-title">3D<br>PUNCH</h1>
         <div class="epic-rules">
             <span style="color: #2979FF;">●</span> BLUE: NEUTRAL<br>
@@ -153,7 +165,34 @@ if (startScreenEl) {
         </div>
         <button class="epic-btn" onclick="initGame()">POW!</button>
     `;
+
+    // Add Install button if mobile and installable
+    if (isMobileDevice && deferredPrompt) {
+        html += `<button class="install-btn" onclick="installApp()">INSTALL GAME</button>`;
+    }
+
+    startScreenEl.innerHTML = html;
 }
+
+// Initial draw
+renderStartScreen();
+
+// --- INSTALLATION LOGIC ---
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    renderStartScreen(); // Re-render to show button
+});
+
+window.installApp = async function() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+        deferredPrompt = null;
+        renderStartScreen(); // Refresh to hide button
+    }
+};
 
 // --- GAME STATE VARIABLES ---
 let score = 0;
@@ -418,9 +457,7 @@ function animate() {
   const now = performance.now();
   const delta = now - lastFrameTime;
 
-  // Only run game logic if enough time has passed (locks loop to 60 FPS)
   if (delta >= FRAME_INTERVAL) {
-    // Adjust lastFrameTime, retaining remainder for precision
     lastFrameTime = now - (delta % FRAME_INTERVAL);
 
     if (!isGameOver) {
@@ -464,45 +501,4 @@ window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
-});
-
-let deferredPrompt; // This variable stores the "Install" event
-const installBanner = document.getElementById('install-banner');
-
-// 1. Listen for the event when the browser says "The app is installable"
-window.addEventListener('beforeinstallprompt', (e) => {
-    // Prevent the mini-infobar from appearing automatically
-    e.preventDefault();
-    
-    // Stash the event so it can be triggered later
-    deferredPrompt = e;
-    
-    // Show your custom banner/button
-    if (installBanner) {
-        installBanner.style.display = 'block';
-    }
-});
-
-// 2. Add the click listener to your custom button
-installBanner.addEventListener('click', async () => {
-    if (!deferredPrompt) return;
-    
-    // Show the actual browser install prompt
-    deferredPrompt.prompt();
-    
-    // Wait for the user to respond to the prompt
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log(`User response to the install prompt: ${outcome}`);
-    
-    // We've used the prompt, clear it out
-    deferredPrompt = null;
-    
-    // Hide the button
-    installBanner.style.display = 'none';
-});
-
-// 3. Optional: Hide the banner if the user installs it
-window.addEventListener('appinstalled', () => {
-    installBanner.style.display = 'none';
-    console.log('PWA was installed');
 });
