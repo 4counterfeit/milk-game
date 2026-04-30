@@ -1,0 +1,15 @@
+{
+  "name": "3D Punch",
+  "short_name": "3DPunch",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "background_color": "#FFCC00",
+  "theme_color": "#FFCC00",
+  "icons": [
+    {
+      "src": "punchicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
