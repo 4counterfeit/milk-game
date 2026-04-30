@@ -1,52 +1,50 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Boxing Clicker - Survival</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-</head>
-<body>
-    <div id="canvas-container"></div>
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, user-scalable=no"
+        />
+        <title>3D Punch Survival</title>
+        
+        <link rel="stylesheet" href="style.css" />
+        
+        <link rel="manifest" href="manifest.json" />
+        <meta name="theme-color" content="#1a1a1a" />
+        <link rel="apple-touch-icon" href="icon-192.png" />
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    </head>
+    <body>
+        <div id="canvas-container"></div>
 
-    <div id="ui">
-        <div>💰 Coins: <span id="uiCoins">0</span></div>
-        <div class="danger-box">
-            ⚠️ Distance:
-            <div id="danger-bar-bg">
-                <div id="danger-bar-fill"></div>
+        <div id="ui">
+            <div id="uiCoins">SCORE: 0</div>
+            <div class="danger-box">
+                DISTANCE
+                <div id="danger-bar-bg">
+                    <div id="danger-bar-fill"></div>
+                </div>
             </div>
         </div>
-        <button id="shop-btn" onclick="openShop()">🛒 Shop</button>
-    </div>
 
-    <div id="shop-screen" style="display: none;">
-        <h1 id="shop-title">GLOVE SHOP</h1>
-        <p>Hurry! The bag is still moving!</p>
-        
-        <div id="shop-items-container"></div>
+        <div id="start-screen" class="overlay-screen">
+            <h1 class="epic-title">3D PUNCH</h1>
+            <div class="rules-card">
+                <span style="color: #2979ff">●</span> BLUE: NEUTRAL<br />
+                <span style="color: #ffcc00">●</span> YELLOW: STOP!<br />
+                <span style="color: #e23636">●</span> RED: COUNTER!<br />
+            </div>
+            <button class="epic-btn" onclick="initGame()">FIGHT!</button>
+        </div>
 
-        <button class="close-btn" onclick="closeShop()">Back to Punching!</button>
-    </div>
+        <div id="game-over-screen" class="overlay-screen" style="display: none">
+            <h1 class="ko-text">K.O.</h1>
+            <h2 id="final-score">SCORE: 0</h2>
+            <button class="epic-btn" onclick="location.reload()">RETRY</button>
+        </div>
 
-    <div id="start-screen" class="overlay-screen">
-        <h1>Boxing Clicker</h1>
-        <p>The bag is sliding towards you.<br>
-           <strong style="color: #f1c40f;">Thrust forward to punch. Shake vertically to open the shop!</strong></p>
-        <button id="start-btn" onclick="initGame()">Start Punching</button>
-    </div>
-
-    <div id="game-over-screen" class="overlay-screen" style="display: none;">
-        <h1 style="color: #e74c3c;">CRUSHED!</h1>
-        <p>The bag overpowered you!</p>
-        <h2>Final Score: <span id="final-score">0</span></h2>
-        <button id="restart-btn" onclick="restartGame()">Try Again</button>
-    </div>
-<div id="install-banner" style="display: none; position: fixed; bottom: 20px; left: 20px; z-index: 9999; background: #FFCC00; padding: 15px; border: 4px solid black; box-shadow: 6px 6px 0px black; cursor: pointer;">
-    <p style="margin: 0; font-family: 'Bangers'; font-size: 1.5rem;">INSTALL TO HOME SCREEN!</p>
-</div>
-    
-    <script src="script.js"></script>
-</body>
+        <script src="script.js"></script>
+    </body>
 </html>
