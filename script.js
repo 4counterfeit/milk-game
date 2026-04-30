@@ -465,3 +465,44 @@ window.addEventListener("resize", () => {
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
+
+let deferredPrompt; // This variable stores the "Install" event
+const installBanner = document.getElementById('install-banner');
+
+// 1. Listen for the event when the browser says "The app is installable"
+window.addEventListener('beforeinstallprompt', (e) => {
+    // Prevent the mini-infobar from appearing automatically
+    e.preventDefault();
+    
+    // Stash the event so it can be triggered later
+    deferredPrompt = e;
+    
+    // Show your custom banner/button
+    if (installBanner) {
+        installBanner.style.display = 'block';
+    }
+});
+
+// 2. Add the click listener to your custom button
+installBanner.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    
+    // Show the actual browser install prompt
+    deferredPrompt.prompt();
+    
+    // Wait for the user to respond to the prompt
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`User response to the install prompt: ${outcome}`);
+    
+    // We've used the prompt, clear it out
+    deferredPrompt = null;
+    
+    // Hide the button
+    installBanner.style.display = 'none';
+});
+
+// 3. Optional: Hide the banner if the user installs it
+window.addEventListener('appinstalled', () => {
+    installBanner.style.display = 'none';
+    console.log('PWA was installed');
+});
