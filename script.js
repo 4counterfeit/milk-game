@@ -166,8 +166,8 @@ function renderStartScreen() {
         <button class="epic-btn" onclick="initGame()">POW!</button>
     `;
 
-    // Add Install button if mobile and installable
-    if (isMobileDevice && deferredPrompt) {
+    // Always add the Install button if mobile
+    if (isMobileDevice) {
         html += `<button class="install-btn" onclick="installApp()">INSTALL GAME</button>`;
     }
 
@@ -181,16 +181,17 @@ renderStartScreen();
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    renderStartScreen(); // Re-render to show button
 });
 
 window.installApp = async function() {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-        deferredPrompt = null;
-        renderStartScreen(); // Refresh to hide button
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            deferredPrompt = null;
+        }
+    } else {
+        alert("The game is currently not installable in this browser or is already installed.");
     }
 };
 
@@ -501,4 +502,4 @@ window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
-});
+}); 
